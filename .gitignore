@@ -1,0 +1,8 @@
+html
+latex
+node_modules
+package.json
+package-lock.json
+*~
+
+
