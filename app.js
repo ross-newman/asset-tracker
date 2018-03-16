@@ -18,6 +18,16 @@ const hostname = '127.0.0.1';
  * \brief The default port number of the server 
  **/
 const port = 3000; 
+/** 
+ * \var email address 
+ * \brief The contact email address of the site author/s 
+ **/
+const email = "ross@rossnewman.com"
+/** 
+ * \var sitename 
+ * \brief The name of this web application 
+ **/
+const sitename = "Asset Tracker"
 
 /** 
  * \var bootstrap_min 
@@ -36,7 +46,7 @@ class pageElements {
   write(string) {
     this.res.write(string);
   }
-
+ 
   end() {
     this.res.end();
   }
@@ -47,9 +57,9 @@ class pageElements {
    * @param {Object} res - HTTP server response object
    */
   navbar() {
-    this.res.write('\
+    this.res.write(`\
   <nav class="navbar navbar-expand-lg navbar-light bg-light">\n\
-    <a class="navbar-brand" href="#">Navbar</a>\n\
+    <a class="navbar-brand" href="#">${sitename}</a>\n\
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">\n\
       <span class="navbar-toggler-icon"></span>\n\
     </button>\n\
@@ -69,7 +79,11 @@ class pageElements {
         </li>\n\
       </ul>\n\
     </div>\n\
-  </nav>\n');
+    <form class="form-inline">\n\
+    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">\n\
+    <button class="btn btn btn-outline-secondary my-2 my-sm-0" type="submit">Search</button>\n\
+  </form>\n\
+</nav>\n`);
   }
 
   /**
@@ -86,8 +100,42 @@ class pageElements {
       border: 0 none;\n\
     }\n\
     .asset_table { padding: 5px 20px 25px;}\n\
+    .alignleft { float: left; }\n\
+    .alignright { float: right; }\n\
     .button_create { padding: 5px 20px 0px;}\n\
+    .page-footer {\n\
+      position: absolute;\n\
+      bottom: 0;\n\
+      width: 100%;\n\
+      height: 45px;\n\
+      background-color: #111;\n\
+      color: #ffffff;\n\
+      text-align: center;\n\
+    }\n\
   </style>\n');
+  }
+  
+  header(pagename, button, uri) {
+    page.write(`\
+<div class="button_create" align="right" >\n\
+  <p class="alignleft" style="text-align:left; font-size:24px ;">${pagename}</p>\n\
+  <a href="${uri}" class="btn btn-primary" class="alignright" style="text-align:right;"> <i class="icon-home icon-white"></i>${button}</a>\n\
+</div>`);    
+  }
+  /**
+   *  \brief Ganerate the code for bottom of the page, footer.
+   *
+   * @param {Object} res - HTTP server response object
+   */
+  footer() {
+    this.res.write(`\
+<footer class="page-footer">\n\
+  <div class="footer-copyright py-3 text-center">Author: ${email} \n\
+    <a href="https://github.com/ross-newman/asset-tracker">\n\
+        <strong>${sitename}</strong>\n\
+    </a> v0.1.0\n\
+  </div>\n\
+</footer>\n`);
   }
 }
 
@@ -127,6 +175,7 @@ function home(page) {
   </div>\n\
 </div>\n\
 </html>'); 
+  page.footer();
   page.end(); 
   return;
 }
@@ -142,7 +191,7 @@ function assets(page) {
     page.styles();
     page.write('<head>\n</head>\n<html>\n');
     page.navbar();
-    page.write('<div class="button_create" align="right">\n\  <a href="/" class="btn btn-primary"> <i class="icon-home icon-white"></i>Create</a>\n</div>');
+    page.header("Assets", "Create New", "/add");
     page.write('<div class="asset_table">\n'); 
     var table = '  <table class="table"> \n\
     <thead class="thead-dark"> \n\
@@ -175,7 +224,9 @@ function assets(page) {
     </tbody> \n\
   </table>\n' 
   page.write(table); 
-  page.write('  </div>\n</html>\n'); 
+  page.write('  </div>\n');
+  page.footer();
+  page.write('</html>\n'); 
   page.end(); 
   return;
 }
@@ -185,12 +236,58 @@ function assets(page) {
  * 
  * @param {Object} page - HTTP server response object
  */
-function add(page) {
-  console.log('Add selected');
-  page.write('Add Page');
-  page.end();
+function models(page) {
+  console.log('Models selected');
+  page.write(bootstrap_min);
+  page.styles();
+  page.write('<head>\n</head>\n<html>\n');
+  page.navbar();
+  page.header("Models", "Create New", "/");
+  page.footer();
+  page.write('</html>\n'); 
+  page.end(); 
   return;
 }
+
+ 
+/**
+ *  \brief Add a new asset to the database.
+ * 
+ * @param {Object} page - HTTP server response object
+ */
+function users(page) {
+  console.log('Users selected');
+  page.write(bootstrap_min);
+  page.styles();
+  page.write('<head>\n</head>\n<html>\n');
+  page.navbar();
+  page.header("Users", "Create New", "/");
+  page.footer();
+  page.write('</html>\n'); 
+  page.end(); 
+  return;
+}
+
+ 
+/**
+ *  \brief Add a new asset to the database.
+ * 
+ * @param {Object} page - HTTP server response object
+ */
+function add(page) {
+  console.log('Add selected');
+  page.write(bootstrap_min);
+  page.styles();
+  page.write('<head>\n</head>\n<html>\n');
+  page.navbar();
+  page.header("Add", "Create", "/");
+  page.footer();
+  page.write('</html>\n'); 
+  page.end(); 
+  return;
+}
+
+
  
 /**
  *  \brief Add a new asset to the database.
@@ -240,6 +337,12 @@ function startServer(hostname, port) {
       switch(q.pathname) {
         case '/assets' :
             assets(page); 
+            break;
+        case '/models' :
+            models(page); 
+            break;
+        case '/users' :
+            users(page); 
             break;
         case '/add' :
             add(page);
