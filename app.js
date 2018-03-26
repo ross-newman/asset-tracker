@@ -6,11 +6,16 @@
  */
 var sqlite3 = require('sqlite3').verbose();
 const http = require('http');
+var path = require('path');
 var url = require('url');
 var fs = require('fs');
 var Sync = require('sync');
 
-var DEBUG = 1;
+/**
+ * \var DEBUG 
+ * \brief Enable some additional debugging featured to be enabled 
+ **/
+ var DEBUG = 1;
 
 /**
  * \var hostname 
@@ -39,9 +44,23 @@ const database = "database.db"
  * \var bootstrap_min 
  * \brief Boot strap code and stylesheet 
  **/
-let bootstrap_min = '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> \n \
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> \n \
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> \n'
+let bootstrap_min = '<link rel="stylesheet" href="/node_modules/mdbootstrap/css/bootstrap.min.css">\n\
+<script src="/node_modules/jquery/dist/jquery.slim.min.js" </script>\n\
+<script src="/node_modules/mdbootstrap/js/bootstrap.min.js" </script>\n'
+
+let mdbootstrap = `\
+  <meta charset="utf-8">\
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">\n\
+  <meta http-equiv="x-ua-compatible" content="ie=edge">\n\
+  <title>${sitename}</title>\n\
+  <!-- Font Awesome -->\n\
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">\n\
+  <!-- Bootstrap core CSS -->\n\
+  <link href="css/bootstrap.min.css" rel="stylesheet">\n\
+  <!-- Material Design Bootstrap -->\n\
+  <link href="css/mdb.min.css" rel="stylesheet">\n\
+  <!-- Your custom styles (optional) -->\n\
+  <link href="css/style.css" rel="stylesheet">\n`
 
 class pageElements {
   constructor(res) {
@@ -55,6 +74,13 @@ class pageElements {
  
   end() {
     this.res.end();
+  }
+
+  head() {
+    this.res.write(`<head>\n`);
+    this.styles();
+    this.res.write(mdbootstrap);
+    this.res.write(`</head>\n`);
   }
 
   /**
@@ -153,18 +179,19 @@ class pageElements {
 function home(page) {
   console.log('Home Page');
   page.write(bootstrap_min);
-  page.styles();
-  page.write('<head>\n</head>\n<html>\n');
+  page.write('<html lang="en">\n');
+  page.head();
+  page.write('<body>');
   page.navbar();
   page.write('<div class="jumbotron text-center">\n\
-  <h1>My First Bootstrap Page</h1>\n\
-  <p>Resize this responsive page to see the effect!</p> \n\
+  <h1>Asset Tracker</h1>\n\
+  <p>The simple asset management and tracking tool (ALPHA).!</p> \n\
 </div>\n\
 \n\
 <div class="container">\n\
   <div class="row">\n\
     <div class="col-sm-4">\n\
-      <h3>Column 1</h3>\n\
+      <h3>Recent Activity</h3>\n\
       <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>\n\
       <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>\n\
     </div>\n\
@@ -174,14 +201,48 @@ function home(page) {
       <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>\n\
     </div>\n\
     <div class="col-sm-4">\n\
-      <h3>Column 3</h3>\n\
-      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>\n\
-      <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>\n\
+      <h3>Deployed Assets</h3>\n\
+      <p>This is the home of your asset dashboard.</p>\n\
+      <p>As you populate the database your will see more usefull information about deployes asstes here.</p>\n\
+      <canvas id="doughnutChart"></canvas>\n\
     </div>\n\
   </div>\n\
-</div>\n\
-</html>'); 
-  page.footer();
+</div>\n');
+page.footer();
+page.write('\
+    <!-- SCRIPTS -->\n\
+    <!-- JQuery -->\n\
+    <script type="text/javascript" src="/node_modules/mdbootstrap/js/jquery-3.2.1.min.js"></script>\n\
+    <!-- Bootstrap tooltips -->\n\
+    <script type="text/javascript" src="/node_modules/mdbootstrap/js/popper.min.js"></script>\n\
+    <!-- Bootstrap core JavaScript -->\n\
+    <script type="text/javascript" src="/node_modules/mdbootstrap/js/bootstrap.min.js"></script>\n\
+    <!-- MDB core JavaScript -->\n\
+    <script type="text/javascript" src="/node_modules/mdbootstrap/js/mdb.min.js"></script>\n\
+\n\
+</body>\n\
+</html>\n');
+page.write('\
+<script>\n\
+var ctxD = document.getElementById("doughnutChart").getContext("2d");\n\
+var myLineChart = new Chart(ctxD, {\n\
+    type: "doughnut",\n\
+    data: {\n\
+        labels: ["Red", "Green", "Yellow", "Grey", "Dark Grey"],\n\
+        datasets: [\n\
+            {\n\
+                data: [300, 50, 100, 40, 120],\n\
+                backgroundColor: ["#F7464A", "#46BFBD", "#FDB45C", "#949FB1", "#4D5360"],\n\
+                hoverBackgroundColor: ["#FF5A5E", "#5AD3D1", "#FFC870", "#A8B3C5", "#616774"]\n\
+            }\n\
+        ]\n\
+    },\n\
+    options: {\n\
+        responsive: true\n\
+    }   \n\
+});\n\
+</script>\n\
+\n'); 
   page.end(); 
   return;
 }
@@ -194,8 +255,8 @@ function home(page) {
 function assets(page) {
     console.log('Assets selected');
     page.write(bootstrap_min);
-    page.styles();
-    page.write('<head>\n</head>\n<html>\n');
+    page.write('<html lang="en">\n');
+    page.head();
     page.navbar();
     page.header("Assets", "Create New", "/add");
     
@@ -252,8 +313,8 @@ function assets(page) {
 function models(page) {
   console.log('Models selected');
   page.write(bootstrap_min);
-  page.styles();
-  page.write('<head>\n</head>\n<html>\n');
+  page.write('<html lang="en">\n');
+  page.head();
   page.navbar();
   page.header("Models", "Create New", "/");
   page.footer();
@@ -270,8 +331,8 @@ function models(page) {
 function users(page) {
   console.log('Users selected');
   page.write(bootstrap_min);
-  page.styles();
-  page.write('<head>\n</head>\n<html>\n');
+  page.write('<html lang="en">\n');
+  page.head();
   page.navbar();
   page.header("Users", "Create New", "/");
   page.footer();
@@ -288,8 +349,8 @@ function users(page) {
 function add(page) {
   console.log('Add selected');
   page.write(bootstrap_min);
-  page.styles();
-  page.write('<head>\n</head>\n<html>\n');
+  page.write('<html lang="en">\n');
+  page.head();
   page.navbar();
   page.header("Add", "Create", "/");
   page.footer();
@@ -306,8 +367,8 @@ function add(page) {
 function setup(page) {
   console.log('Add selected');
   page.write(bootstrap_min);
-  page.styles();
-  page.write('<head>\n</head>\n<html>\n');
+  page.write('<html lang="en">\n');
+  page.head();
   page.navbar();
   page.header("Setup", "Complete", "/");
   page.write(`<div class="asset_table"><br>No DB found so setting up ${database}...<br><br>\n`);
@@ -381,10 +442,38 @@ function setup(page) {
  * @param {String} filename - Requested filename.
  */
 function fileServer(res, filename) {
-  console.log('File Server');
+  if (DEBUG) {
+    console.log('File Server : ' + "http://" + hostname + ":" + port + filename.slice(1,filename.length));
+  }
+  var filePath = '.' + filename;
+  if (filePath == './')
+      filePath = './index.html';
+
+  var extname = path.extname(filePath);
+  var contentType = 'text/html';
+  switch (extname) {
+      case '.js':
+          contentType = 'text/javascript';
+          break;
+      case '.css':
+          contentType = 'text/css';
+          break;
+      case '.json':
+          contentType = 'application/json';
+          break;
+      case '.png':
+          contentType = 'image/png';
+          break;      
+      case '.jpg':
+          contentType = 'image/jpg';
+          break;
+      case '.ico':
+          contentType = 'image/ico';
+          break;
+  }
+
   fs.readFile(filename, function(err, data) {
     if (err) {
-      res.writeHead(404, {'Content-Type': 'text/html'});
       fs.readFile("./404.html", function(e, data404) {
         if (e) {
           return res.end('404 Not Found');
@@ -394,7 +483,7 @@ function fileServer(res, filename) {
       });
     }  else
     {
-      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.writeHead(200, {'Content-Type': contentType});
       res.write(data);
       return res.end();
     }
