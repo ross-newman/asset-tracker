@@ -1,15 +1,27 @@
 /**
  * 
  * @file logging.js
- * @namespace Application event logging
- * Functions to store and retrieve log messages.
+ * @namespace app 
+ * @author Ross Newman <ross@rossnewman.com>
  */
 
-module.exports = class logging {
-  constructor(res) {
+ /**
+  * This is the generic logging class
+  */ 
+class logging {
+  /**
+   * Lofgging constructor
+   * @constructor
+   * @param {object} res the HTTP response object for rendering the current page.
+   */
+    constructor(res) {
     this.res = res;
   }
-  display(num) {
+   /**
+   * The display function to show the head of the latest log messages
+   * @param {integer} num - The number of messages to show
+   */
+    display(num) {
     this.res.write('\
     <div class="agenda">\n\
     <div class="table-responsive">\n\
@@ -82,3 +94,5 @@ module.exports = class logging {
 </div>\n');
   }
 };
+
+module.exports = logging;

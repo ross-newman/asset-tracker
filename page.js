@@ -1,51 +1,63 @@
 /**
  * 
  * @file page.js
- * @namespace The page building functions used on every page
- * This module has the most commonly used page building operations used.
+ * @namespace app 
+ * @author Ross Newman <ross@rossnewman.com>
  */
 
-const sitename = "Asset Tracker"
-const email = "ross@rossnewman.com"
-
-let mdbootstrap = `\
-  <meta charset="utf-8">\
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">\n\
-  <meta http-equiv="x-ua-compatible" content="ie=edge">\n\
-  <title>${sitename}</title>\n\
-  <!-- Font Awesome -->\n\
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">\n\
-  <!-- Bootstrap core CSS -->\n\
-  <link href="css/bootstrap.min.css" rel="stylesheet">\n\
-  <!-- Material Design Bootstrap -->\n\
-  <link href="css/mdb.min.css" rel="stylesheet">\n\
-  <!-- Your custom styles (optional) -->\n\
-  <link href="css/style.css" rel="stylesheet">\n`
-
-module.exports = class page2 {
-    constructor(width) {
-        this.width = width;
-    }
-
-    area() {
-        return this.width ** 2;
-    }
-};
+ /** This is the Markdown Design Bootstrap initalisation code */
+ mdbootstrap = `\
+ <meta charset="utf-8">\
+ <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">\n\
+ <meta http-equiv="x-ua-compatible" content="ie=edge">\n\
+ <title>${this._sitename}</title>\n\
+ <!-- Font Awesome -->\n\
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">\n\
+ <!-- Bootstrap core CSS -->\n\
+ <link href="css/bootstrap.min.css" rel="stylesheet">\n\
+ <!-- Material Design Bootstrap -->\n\
+ <link href="css/mdb.min.css" rel="stylesheet">\n\
+ <!-- Your custom styles (optional) -->\n\
+ <link href="css/style.css" rel="stylesheet">\n`
   
-module.exports = class page {
-  constructor(res) {
+/**
+ * Page class used to render the main page components in HTML
+ */
+class page {
+
+  /**
+   * Page constructor
+   * @constructor
+   * @param {object} res the HTTP response object for rendering the current page.
+   * @param {string} site the name of this website.
+   * @param {string} webmaster email address for support issues.
+   */
+  constructor(res, site, webmaster) {
     this.res = res;
+    this._sitename = site;
+    this._email = webmaster;
     this.res.writeHead(200, {'Content-Type': 'text/html'});
   }
 
+  /**
+   * Write the HTTP data to write to the current page.
+   * @param {string} string
+   */
   write(string) {
     this.res.write(string);
   }
  
+
+  /**
+   * Finalise the current page so that it can be fully rendered.
+   */
   end() {
     this.res.end();
   }
 
+  /**
+   * Output the page header..
+   */
   head() {
     this.res.write(`<head>\n`);
     this.styles();
@@ -54,14 +66,13 @@ module.exports = class page {
   }
 
   /**
-   *  \brief Ganerate the code for the navigation bar at the top of the screen.
-   *
+   * Ganerate the code for the navigation bar at the top of the screen.
    * @param {Object} res - HTTP server response object
    */
   navbar() {
     this.res.write(`\
   <nav class="navbar navbar-expand-lg navbar-light bg-light">\n\
-    <a class="navbar-brand" href="#">${sitename}</a>\n\
+    <a class="navbar-brand" href="#">${this._sitename}</a>\n\
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">\n\
       <span class="navbar-toggler-icon"></span>\n\
     </button>\n\
@@ -89,8 +100,7 @@ module.exports = class page {
   }
 
   /**
-   *  \brief Ganerate the code for custome style.
-   *
+   * Ganerate the code for custome style.
    * @param {Object} res - HTTP server response object
    */
   styles() {
@@ -135,12 +145,13 @@ module.exports = class page {
   }
   
   header(pagename, button, uri) {
-    page.write(`\
+    this.res.write(`\
 <div class="button_create" align="right" >\n\
   <p class="alignleft" style="text-align:left; font-size:24px ;">${pagename}</p>\n\
   <a href="${uri}" class="btn btn-primary" class="alignright" style="text-align:right;"> <i class="icon-home icon-white"></i>${button}</a>\n\
 </div>\n`);    
   }
+
   /**
    *  \brief Ganerate the code for bottom of the page, footer.
    *
@@ -149,12 +160,13 @@ module.exports = class page {
   footer() {
     this.res.write(`\
 <footer class="page-footer">\n\
-  <div class="footer-copyright py-3 text-center">Author: ${email} \n\
+  <div class="footer-copyright py-3 text-center">Author: ${this._email} \n\
     <a href="https://github.com/ross-newman/asset-tracker">\n\
-        <strong>${sitename}</strong>\n\
+        <strong>${this._sitename}</strong>\n\
     </a> v0.1.0\n\
   </div>\n\
 </footer>\n`);
   }
 };
 
+module.exports = page;

@@ -1,8 +1,10 @@
 /**
  * 
  * @file app.js
- * @namespace Asset Tracker main modile
- * Module for loading and storing data
+ * @fileOverview The main application an http server implementation
+ * @namespace app 
+ * @author Ross Newman <ross@rossnewman.com>
+ * @version 0.1.0
  */
 var sqlite3 = require('sqlite3').verbose();
 const http = require('http');
@@ -13,50 +15,63 @@ var Sync = require('sync');
 const page = require('./page.js');
 const logging = require('./logging.js');
 
+/**
+ * The global application logging object 
+ */
 var mylog;
 
 /**
- * \var DEBUG 
- * \brief Enable some additional debugging featured to be enabled 
- **/
+ * Enable some additional debugging featured to be enabled 
+ */
  var DEBUG = 1;
 
 /**
- * \var hostname 
- * \brief The default hostname of the server 
- **/
+ * The default hostname of the server 
+ * @constant
+ * @type {string}
+ * @default 
+ */
 const hostname = '127.0.0.1'; 
+
 /** 
  * \var port 
  * \brief The default port number of the server 
- **/
+ */
 const port = 3000; 
+
 /** 
- * \var email address 
+ * \var email
  * \brief The contact email address of the site author/s 
- **/
+ */
 const email = "ross@rossnewman.com"
+
 /** 
- * \var sitename 
- * \brief The name of this web application 
- **/
+ * The name of this web application 
+ * @param {Object} page -  - HTTP server response object
+ */
 const sitename = "Asset Tracker"
 
-const database = "database.db"
 /** 
- * \var bootstrap_min 
- * \brief Boot strap code and stylesheet 
+ * The default database name 
+ * @param {Object} page -  - HTTP server response object
  **/
+const database = "database.db"
+
+/** 
+ * Boot strap code and stylesheet 
+ * @param {Object} page -  - HTTP server response object
+ */
 let bootstrap_min = '<link rel="stylesheet" href="/node_modules/mdbootstrap/css/bootstrap.min.css">\n\
 <script src="/node_modules/jquery/dist/jquery.slim.min.js" </script>\n\
 <script src="/node_modules/mdbootstrap/js/bootstrap.min.js" </script>\n'
 
 /**
- *  \brief Home page and welcome screen.
- *
- * @param {Object} page - HTTP server response object
+ * Home page and welcome screen.
+ * @function
+ * @author: Ross Newman
+ * @param {Object} page -  - HTTP server response object
  */
-function home(page) {
+function page_home(page) {
   console.log('Home Page');
   page.write(bootstrap_min);
   page.write('<html lang="en">\n');
@@ -120,17 +135,16 @@ var myLineChart = new Chart(ctxD, {\n\
 });\n\
 </script>\n\
 \n'); 
-  delete log;
   page.end(); 
   return;
 }
 
 /**
- *  \brief List the assets.
- *
+ * List the assets.
+ * @function
  * @param {Object} page - HTTP server response object
  */
-function assets(page) {
+function page_assets(page) {
     console.log('Assets selected');
     page.write(bootstrap_min);
     page.write('<html lang="en">\n');
@@ -184,11 +198,11 @@ function assets(page) {
 }
  
 /**
- *  \brief Add a new asset to the database.
- * 
+ * Add a new asset to the database.
+ * @function
  * @param {Object} page - HTTP server response object
  */
-function models(page) {
+function page_models(page) {
   console.log('Models selected');
   page.write(bootstrap_min);
   page.write('<html lang="en">\n');
@@ -202,11 +216,11 @@ function models(page) {
 }
 
 /**
- *  \brief Add a new asset to the database.
- * 
+ * Add a new asset to the database.
+ * @function
  * @param {Object} page - HTTP server response object
  */
-function users(page) {
+function page_users(page) {
   console.log('Users selected');
   page.write(bootstrap_min);
   page.write('<html lang="en">\n');
@@ -224,7 +238,7 @@ function users(page) {
  * 
  * @param {Object} page - HTTP server response object
  */
-function add(page) {
+function page_add(page) {
   console.log('Add selected');
   page.write(bootstrap_min);
   page.write('<html lang="en">\n');
@@ -242,7 +256,7 @@ function add(page) {
  * 
  * @param {Object} page - HTTP server response object
  */
-function setup(page) {
+function page_setup(page) {
   console.log('Add selected');
   page.write(bootstrap_min);
   page.write('<html lang="en">\n');
@@ -384,7 +398,7 @@ function startServer(hostname, port) {
     {
       var q = url.parse(req.url, true);
       var filename = "." + q.pathname;
-      const mypage = new page(res);
+      const mypage = new page(res, sitename, email);
 
       /* Start Logging */
       mylog = new logging(mypage);
@@ -397,20 +411,20 @@ function startServer(hostname, port) {
         /* Database exists so process pages normally */
         switch(q.pathname) {
           case '/assets' :
-              assets(mypage); 
-              break;
+            page_assets(mypage); 
+            break;
           case '/models' :
-              models(mypage); 
-              break;
+            page_models(mypage); 
+            break;
           case '/users' :
-              users(mypage); 
-              break;
+            page_users(mypage); 
+            break;
           case '/add' :
-              add(mypage);
-              break;
+           page_add(mypage);
+            break;
           case '/' : // Go to the home page
-              home(mypage);
-              break;
+          page_home(mypage);
+            break;
           default:
               fileServer(res, filename);
         }

@@ -1,4 +1,5 @@
 html
+out
 latex
 node_modules
 package.json
