@@ -1,7 +1,7 @@
 /**
  * 
  * @file app.js
- * @namespace AssetDB
+ * @namespace Asset Tracker main modile
  * Module for loading and storing data
  */
 var sqlite3 = require('sqlite3').verbose();
@@ -10,6 +10,10 @@ var path = require('path');
 var url = require('url');
 var fs = require('fs');
 var Sync = require('sync');
+const page = require('./page.js');
+const logging = require('./logging.js');
+
+var mylog;
 
 /**
  * \var DEBUG 
@@ -39,7 +43,6 @@ const email = "ross@rossnewman.com"
 const sitename = "Asset Tracker"
 
 const database = "database.db"
-
 /** 
  * \var bootstrap_min 
  * \brief Boot strap code and stylesheet 
@@ -47,129 +50,6 @@ const database = "database.db"
 let bootstrap_min = '<link rel="stylesheet" href="/node_modules/mdbootstrap/css/bootstrap.min.css">\n\
 <script src="/node_modules/jquery/dist/jquery.slim.min.js" </script>\n\
 <script src="/node_modules/mdbootstrap/js/bootstrap.min.js" </script>\n'
-
-let mdbootstrap = `\
-  <meta charset="utf-8">\
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">\n\
-  <meta http-equiv="x-ua-compatible" content="ie=edge">\n\
-  <title>${sitename}</title>\n\
-  <!-- Font Awesome -->\n\
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">\n\
-  <!-- Bootstrap core CSS -->\n\
-  <link href="css/bootstrap.min.css" rel="stylesheet">\n\
-  <!-- Material Design Bootstrap -->\n\
-  <link href="css/mdb.min.css" rel="stylesheet">\n\
-  <!-- Your custom styles (optional) -->\n\
-  <link href="css/style.css" rel="stylesheet">\n`
-
-class pageElements {
-  constructor(res) {
-    this.res = res;
-    this.res.writeHead(200, {'Content-Type': 'text/html'});
-  }
-
-  write(string) {
-    this.res.write(string);
-  }
- 
-  end() {
-    this.res.end();
-  }
-
-  head() {
-    this.res.write(`<head>\n`);
-    this.styles();
-    this.res.write(mdbootstrap);
-    this.res.write(`</head>\n`);
-  }
-
-  /**
-   *  \brief Ganerate the code for the navigation bar at the top of the screen.
-   *
-   * @param {Object} res - HTTP server response object
-   */
-  navbar() {
-    this.res.write(`\
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">\n\
-    <a class="navbar-brand" href="#">${sitename}</a>\n\
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">\n\
-      <span class="navbar-toggler-icon"></span>\n\
-    </button>\n\
-    <div class="collapse navbar-collapse" id="navbarNav">\n\
-      <ul class="navbar-nav">\n\
-        <li class="nav-item active">\n\
-          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>\n\
-        </li>\n\
-        <li class="nav-item">\n\
-          <a class="nav-link" href="/assets">Assets</a>\n\
-        </li>\n\
-        <li class="nav-item">\n\
-          <a class="nav-link" href="/models">Models</a>\n\
-        </li>\n\
-        <li class="nav-item">\n\
-          <a class="nav-link disabled" href="/users">Users</a>\n\
-        </li>\n\
-      </ul>\n\
-    </div>\n\
-    <form class="form-inline">\n\
-    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">\n\
-    <button class="btn btn btn-outline-secondary my-2 my-sm-0" type="submit">Search</button>\n\
-  </form>\n\
-</nav>\n`);
-  }
-
-  /**
-   *  \brief Ganerate the code for custome style.
-   *
-   * @param {Object} res - HTTP server response object
-   */
-  styles() {
-    this.res.write('\
-  <style>\n\
-    .btn-primary {\n\
-      background: #212529;\n\
-      color: #ffffff;\n\
-      border: 0 none;\n\
-    }\n\
-    .asset_table { padding: 5px 20px 25px;}\n\
-    .alignleft { float: left; }\n\
-    .alignright { float: right; }\n\
-    .button_create { padding: 10px 20px 0px;}\n\
-    .page-footer {\n\
-      position: absolute;\n\
-      bottom: 0;\n\
-      width: 100%;\n\
-      height: 45px;\n\
-      background-color: #111;\n\
-      color: #ffffff;\n\
-      text-align: center;\n\
-    }\n\
-  </style>\n');
-  }
-  
-  header(pagename, button, uri) {
-    page.write(`\
-<div class="button_create" align="right" >\n\
-  <p class="alignleft" style="text-align:left; font-size:24px ;">${pagename}</p>\n\
-  <a href="${uri}" class="btn btn-primary" class="alignright" style="text-align:right;"> <i class="icon-home icon-white"></i>${button}</a>\n\
-</div>\n`);    
-  }
-  /**
-   *  \brief Ganerate the code for bottom of the page, footer.
-   *
-   * @param {Object} res - HTTP server response object
-   */
-  footer() {
-    this.res.write(`\
-<footer class="page-footer">\n\
-  <div class="footer-copyright py-3 text-center">Author: ${email} \n\
-    <a href="https://github.com/ross-newman/asset-tracker">\n\
-        <strong>${sitename}</strong>\n\
-    </a> v0.1.0\n\
-  </div>\n\
-</footer>\n`);
-  }
-}
 
 /**
  *  \brief Home page and welcome screen.
@@ -190,15 +70,12 @@ function home(page) {
 \n\
 <div class="container">\n\
   <div class="row">\n\
-    <div class="col-sm-4">\n\
+    <div class="col-sm-8">\n\
       <h3>Recent Activity</h3>\n\
-      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>\n\
-      <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>\n\
-    </div>\n\
-    <div class="col-sm-4">\n\
-      <h3>Column 2</h3>\n\
-      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>\n\
-      <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>\n\
+      <p>');
+  mylog.display();
+  page.write('\
+      </p>\n\
     </div>\n\
     <div class="col-sm-4">\n\
       <h3>Deployed Assets</h3>\n\
@@ -243,6 +120,7 @@ var myLineChart = new Chart(ctxD, {\n\
 });\n\
 </script>\n\
 \n'); 
+  delete log;
   page.end(); 
   return;
 }
@@ -499,14 +377,17 @@ function fileServer(res, filename) {
  *
  **/
 function startServer(hostname, port) {
-
-  try {
-
+  try 
+  {
     // Create HTTP server
-    const server = http.createServer(function (req, res) {
+    const server = http.createServer(function (req, res) 
+    {
       var q = url.parse(req.url, true);
       var filename = "." + q.pathname;
-      page = new pageElements(res);
+      const mypage = new page(res);
+
+      /* Start Logging */
+      mylog = new logging(mypage);
 
       if (!fs.existsSync(`./${database}`)) {
         /* No database so set one up */
@@ -516,19 +397,19 @@ function startServer(hostname, port) {
         /* Database exists so process pages normally */
         switch(q.pathname) {
           case '/assets' :
-              assets(page); 
+              assets(mypage); 
               break;
           case '/models' :
-              models(page); 
+              models(mypage); 
               break;
           case '/users' :
-              users(page); 
+              users(mypage); 
               break;
           case '/add' :
-              add(page);
+              add(mypage);
               break;
           case '/' : // Go to the home page
-              home(page);
+              home(mypage);
               break;
           default:
               fileServer(res, filename);
@@ -549,3 +430,4 @@ function startServer(hostname, port) {
 // Start server instance
 startServer(hostname, port);
 console.log('Server Started...');
+
