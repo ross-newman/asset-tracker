@@ -7,7 +7,9 @@ npm install sqlite3
 npm install bootstrap
 npm install jquery
 npm install jsdoc
+npm install sync
 ```
+You willalso need to install sqlite3 ([windows](http://www.sqlite.org/download.html) | linux).
 # Generate documentation
 The code is documented with jsdoc. Help files can be generated using the following jsdoc command:
 ``` 
