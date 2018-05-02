@@ -3,10 +3,10 @@ Log stuff and keep track of it. Simple Node.js asset tracker built using node.js
 # Setup
 Before you can run the node you will need to install the following dependancies
 ```
-npm sqlite3
-npm bootstrap
-npm jquery
-npm jsdoc
+npm install sqlite3
+npm install bootstrap
+npm install jquery
+npm install jsdoc
 ```
 # Generate documentation
 The code is documented with jsdoc. Help files can be generated using the following jsdoc command:
