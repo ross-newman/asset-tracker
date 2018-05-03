@@ -6,6 +6,7 @@
  * @author Ross Newman <ross@rossnewman.com>
  * @version 0.1.0
  */
+
 var sqlite3 = require('sqlite3').verbose();
 const http = require('http');
 var path = require('path');
@@ -14,6 +15,8 @@ var fs = require('fs');
 var Sync = require('sync');
 const page = require('./page.js');
 const logging = require('./logging.js');
+//import { logging, severity } from './logging.js';
+
 
 /**
  * The global application logging object 
@@ -266,12 +269,24 @@ function page_setup(page) {
   page.write(`<div class="asset_table"><br>No DB found so setting up ${database}...<br><br>\n`);
 
   var db = new sqlite3.Database(`./${database}`, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
+
+    /* Register the handler with the logging object */
+    logging.register(db);
     if (err) {
       console.error(err.message);
     }
     console.log(`Created ${database} database.`);
   
     db.serialize(function() {
+
+      /* Create logging first as we can use this for debugging */
+      db.run("CREATE TABLE if not exists logging (utime INTEGER, message TEXT, level INTEGER)", function(res) {
+        /* Setup status/s */
+        var stmt = db.prepare("INSERT INTO logging VALUES (?,?,?)");
+        stmt.run(Math.round((new Date()).getTime() / 1000), "Database created...", 1);
+        stmt.finalize();
+      });
+
       /*Create the tables needed to start executing the application */
       db.run("CREATE TABLE if not exists asset_info (assetid INTEGER PRIMARY KEY, name TEXT, serial TEXT, model INTEGER, status INTEGER, Location INTEGER, notes TEXT, available BOOLEAN )", function(res) {
         if (DEBUG)
@@ -289,6 +304,7 @@ function page_setup(page) {
             });
           });
         }
+        logging.event("Created asset_info table", logging.severity.Debugging);
       });
       db.run("CREATE TABLE if not exists users_info (id INTEGER PRIMARY KEY, name TEXT, email TEXT, country INTEGER)");
       db.run("CREATE TABLE if not exists status_info (id INTEGER PRIMARY KEY, status TEXT, color int)", function(res) {
@@ -299,6 +315,7 @@ function page_setup(page) {
         stmt.run(3, "EOL", "");
         stmt.run(4, "Item Lost", "");
         stmt.finalize();
+        logging.event("Created status_info table", logging.severity.Debugging);
       });
       db.run("CREATE TABLE if not exists model_info (id INTEGER PRIMARY KEY, model TEXT)");
       /* There are a lot of countries so take them from https://github.com/stefangabos/world_countries */
@@ -307,6 +324,7 @@ function page_setup(page) {
         db.run(statements[0], function(res) { /* Create the countries table */
           db.run(statements[1]); /* When created add the entries */
         });
+        logging.event("Created model_info table", logging.severity.Debugging);
       });
 
       page.write('<p style="margin-left: 40px">');
@@ -315,11 +333,13 @@ function page_setup(page) {
       page.write('CREATED TABLE status_info...<br>\n');
       page.write('CREATED TABLE model_info...<br>\n');
       page.write('CREATED TABLE countries...<br>\n');
+      page.write('CREATED TABLE logging...<br>\n');
       page.write('Done...<br>\n');
       page.write('</p>');
       page.write('</div>\n'); 
       page.footer();
       page.write('</html>\n'); 
+      logging.event("Completed inital setup", logging.severity.Debugging);
       page.end(); 
     }); /* End serialize */
   });
@@ -405,7 +425,7 @@ function startServer(hostname, port) {
 
       if (!fs.existsSync(`./${database}`)) {
         /* No database so set one up */
-        setup(page);
+        page_setup(mypage);
       } else
       {
         /* Database exists so process pages normally */

@@ -5,18 +5,33 @@
  * @author Ross Newman <ross@rossnewman.com>
  */
 
+
  /**
   * This is the generic logging class
   */ 
 class logging {
+
   /**
-   * Lofgging constructor
+   * Logging constructor
    * @constructor
    * @param {object} res the HTTP response object for rendering the current page.
    */
     constructor(res) {
     this.res = res;
   }
+
+
+  static register(db) {
+    this._db = db;
+  }
+
+  static event(description, level) {
+    var stmt = this._db.prepare("INSERT INTO logging VALUES (?,?,?)");
+    stmt.run(Math.round((new Date()).getTime() / 1000), description, level);
+    stmt.finalize();
+    console.log("Logging event : ", description, level);
+  }
+
    /**
    * The display function to show the head of the latest log messages
    * @param {integer} num - The number of messages to show
@@ -93,6 +108,8 @@ class logging {
     </div>\n\
 </div>\n');
   }
-};
+}
+
+logging.severity = {"Critical": 1, "Error": 2, "Warning": 3, "Information": 4, "Debugging": 5 }
 
 module.exports = logging;
