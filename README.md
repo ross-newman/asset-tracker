@@ -4,7 +4,7 @@ Log stuff and keep track of it. Simple Node.js asset tracker built using node.js
 Before you can run the node you will need to install the following dependancies
 ```
 npm install sqlite3
-npm install bootstrap
+npm install mdbootstrap
 npm install jquery
 npm install jsdoc
 npm install sync
